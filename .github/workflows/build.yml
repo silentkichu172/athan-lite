@@ -3,7 +3,7 @@ name: Build APK
 on:
   push:
     branches: [ main ]
-  workflow_dispatch: {}
+  workflow_dispatch: {}   # lets you trigger a build manually from the Actions tab
 
 jobs:
   build:
@@ -16,36 +16,42 @@ jobs:
           flutter-version: '3.24.0'
           channel: 'stable'
 
+      # Scaffold Android platform files around our existing lib/ + pubspec.yaml
       - name: Create Android platform folder
         run: flutter create --platforms=android --org com.athanlite .
 
+      # Add the packages this app needs (lets Flutter resolve compatible
+      # versions automatically instead of us pinning them by hand)
       - name: Add dependencies
         run: |
           flutter pub add adhan geolocator flutter_compass \
             flutter_local_notifications timezone hijri intl
 
+      # Patch AndroidManifest.xml: permissions + receivers needed for
+      # location and scheduled Azan notifications
       - name: Patch AndroidManifest.xml
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
           sed -i '/<manifest /a\
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>\
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>\
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>\
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>\
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>\
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>' "$MANIFEST"
+          <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>\
+          <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>\
+          <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>\
+          <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>\
+          <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>\
+          <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>\
+          <uses-permission android:name="android.permission.WAKE_LOCK"/>' "$MANIFEST"
           sed -i '/<\/application>/i\
-    <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />\
-    <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">\
-        <intent-filter>\
-            <action android:name="android.intent.action.BOOT_COMPLETED"/>\
-            <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>\
-            <action android:name="android.intent.action.QUICKBOOT_POWERON"/>\
-        </intent-filter>\
-    </receiver>' "$MANIFEST"
+          <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />\
+          <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">\
+              <intent-filter>\
+                  <action android:name="android.intent.action.BOOT_COMPLETED"/>\
+                  <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>\
+                  <action android:name="android.intent.action.QUICKBOOT_POWERON"/>\
+              </intent-filter>\
+          </receiver>' "$MANIFEST"
           cat "$MANIFEST"
 
+      # Ensure minSdk is high enough for flutter_local_notifications
       - name: Bump minSdk to 23
         run: |
           for f in android/app/build.gradle android/app/build.gradle.kts; do
