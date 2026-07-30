@@ -1,30 +1,14 @@
-import 'package:geolocator/geolocator.dart';
+import 'package:flutter/material.dart';
 
-/// Wraps geolocator so the rest of the app never talks to it directly.
-/// Swap the implementation here later if you switch location providers.
-class LocationService {
-  static Future<Position> getCurrentPosition() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      throw Exception('Location services are disabled. Please enable GPS.');
-    }
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        throw Exception('Location permission denied.');
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      throw Exception(
-        'Location permission permanently denied. Enable it in phone Settings.',
-      );
-    }
-
-    return Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
-  }
+ThemeData buildAppTheme() {
+  const seed = Color(0xFF0F6E4E); // deep green, common for Islamic apps
+  return ThemeData(
+    useMaterial3: true,
+    colorScheme: ColorScheme.fromSeed(seedColor: seed),
+    appBarTheme: const AppBarTheme(centerTitle: true),
+    cardTheme: CardThemeData(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    ),
+  );
 }
