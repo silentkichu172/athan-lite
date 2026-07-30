@@ -18,7 +18,7 @@ jobs:
 
       # Scaffold Android platform files around our existing lib/ + pubspec.yaml
       - name: Create Android platform folder
-      run: flutter create --platforms=android --project-name athan_lite --org com.athanlite .
+        run: flutter create --platforms=android --project-name athan_lite --org com.athanlite .
 
       # Add the packages this app needs (lets Flutter resolve compatible
       # versions automatically instead of us pinning them by hand)
