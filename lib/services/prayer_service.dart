@@ -18,7 +18,6 @@ class DailyPrayerTimes {
     required this.isha,
   });
 
-  /// Ordered list for easy display / iteration, e.g. in a ListView.
   List<MapEntry<String, DateTime>> asList() => [
         MapEntry('Fajr', fajr),
         MapEntry('Sunrise', sunrise),
@@ -28,20 +27,16 @@ class DailyPrayerTimes {
         MapEntry('Isha', isha),
       ];
 
-  /// Returns the next upcoming prayer (skips Sunrise since it's not a Salah).
   MapEntry<String, DateTime>? nextPrayer() {
     final now = DateTime.now();
-    final salahOnly =
-        asList().where((e) => e.key != 'Sunrise').toList();
+    final salahOnly = asList().where((e) => e.key != 'Sunrise').toList();
     for (final entry in salahOnly) {
       if (entry.value.isAfter(now)) return entry;
     }
-    return null; // all done for today; caller should roll to tomorrow's Fajr
+    return null;
   }
 }
 
-/// All prayer-time math lives here. This is offline / astronomical
-/// calculation (no internet or API key required).
 class PrayerService {
   static DailyPrayerTimes getTimesForDate({
     required double latitude,
@@ -67,8 +62,6 @@ class PrayerService {
     );
   }
 
-  /// Great-circle bearing (in degrees, 0-360) from a location to the Kaaba.
-  /// Used by the Qibla screen. Standard spherical-trig formula.
   static double qiblaBearing(double latitude, double longitude) {
     const kaabaLat = 21.4225;
     const kaabaLng = 39.8262;
