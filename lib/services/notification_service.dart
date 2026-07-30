@@ -4,8 +4,6 @@ import 'package:timezone/data/latest_all.dart' as tzdata;
 
 import 'prayer_service.dart';
 
-/// Handles local (on-device) notifications for the Azan.
-/// No server, no push service, no ads SDK involved.
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
@@ -19,7 +17,7 @@ class NotificationService {
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     const initSettings = InitializationSettings(android: androidSettings);
-    await _plugin.initialize(initSettings);
+    await _plugin.initialize(settings: initSettings);
 
     const channel = AndroidNotificationChannel(
       'prayer_channel',
@@ -28,7 +26,7 @@ class NotificationService {
       importance: Importance.max,
     );
     await _plugin
-        .resolvePlatformSpecificImplementation<
+        .resolvePlatformSpecificImplementation
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
 
@@ -37,18 +35,15 @@ class NotificationService {
 
   static Future<void> requestPermissions() async {
     await _plugin
-        .resolvePlatformSpecificImplementation<
+        .resolvePlatformSpecificImplementation
             AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
     await _plugin
-        .resolvePlatformSpecificImplementation<
+        .resolvePlatformSpecificImplementation
             AndroidFlutterLocalNotificationsPlugin>()
         ?.requestExactAlarmsPermission();
   }
 
-  /// Cancels any previously scheduled prayer notifications and schedules
-  /// fresh ones for today's five prayers. Call this once a day (e.g. on
-  /// app open, or from a daily background task once you add one).
   static Future<void> scheduleTodaysPrayers(DailyPrayerTimes times) async {
     await _plugin.cancelAll();
 
@@ -75,11 +70,11 @@ class NotificationService {
     DateTime time,
   ) async {
     await _plugin.zonedSchedule(
-      id,
-      'Time for $prayerName',
-      'It is time to pray $prayerName.',
-      tz.TZDateTime.from(time, tz.local),
-      const NotificationDetails(
+      id: id,
+      title: 'Time for $prayerName',
+      body: 'It is time to pray $prayerName.',
+      scheduledDate: tz.TZDateTime.from(time, tz.local),
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'prayer_channel',
           'Prayer Times',
@@ -89,8 +84,6 @@ class NotificationService {
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
     );
   }
 }
