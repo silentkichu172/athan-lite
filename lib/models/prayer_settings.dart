@@ -1,7 +1,5 @@
 import 'package:adhan/adhan.dart';
 
-/// Central place for user-configurable settings.
-/// Add new fields here as you add features (e.g. Quran reciter, theme, etc.)
 class PrayerSettings {
   double latitude;
   double longitude;
