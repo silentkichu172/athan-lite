@@ -6,12 +6,6 @@ import 'prayer_times_screen.dart';
 import 'qibla_screen.dart';
 import 'settings_screen.dart';
 
-/// Owns the shared PrayerSettings and hosts the bottom navigation.
-///
-/// TO ADD A NEW FEATURE (e.g. Tasbih Counter, Quran):
-///   1. Create lib/screens/your_feature_screen.dart
-///   2. Import it above
-///   3. Add it to `_screens` and add a matching item to `_navItems` below
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
 
@@ -22,7 +16,6 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int _index = 0;
 
-  // Default location: Toronto, ON. User can override via "use my location".
   PrayerSettings _settings = PrayerSettings(
     latitude: 43.6532,
     longitude: -79.3832,
