@@ -59,11 +59,11 @@ jobs:
           GROOVY=android/app/build.gradle
           if [ -f "$KTS" ]; then
             sed -i 's/compileOptions {/compileOptions {\n        isCoreLibraryDesugaringEnabled = true/' "$KTS"
-            sed -i 's/dependencies {/dependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")/' "$KTS"
+            echo 'dependencies { coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4") }' >> "$KTS"
           fi
           if [ -f "$GROOVY" ]; then
             sed -i 's/compileOptions {/compileOptions {\n        coreLibraryDesugaringEnabled true/' "$GROOVY"
-            sed -i 's/dependencies {/dependencies {\n    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"/' "$GROOVY"
+            echo 'dependencies { coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4" }' >> "$GROOVY"
           fi
           cat "$KTS" 2>/dev/null || cat "$GROOVY"
 
