@@ -5,8 +5,7 @@ import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'prayer_service.dart';
 
 class NotificationService {
-  static final FlutterLocalNotificationsPlugin _plugin =
-      FlutterLocalNotificationsPlugin();
+  static final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
 
   static bool _initialized = false;
 
@@ -14,8 +13,7 @@ class NotificationService {
     if (_initialized) return;
     tzdata.initializeTimeZones();
 
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const initSettings = InitializationSettings(android: androidSettings);
     await _plugin.initialize(settings: initSettings);
 
@@ -25,23 +23,17 @@ class NotificationService {
       description: 'Azan notifications for daily prayer times',
       importance: Importance.max,
     );
-    await _plugin
-        .resolvePlatformSpecificImplementation
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(channel);
+
+    final androidImpl = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    await androidImpl?.createNotificationChannel(channel);
 
     _initialized = true;
   }
 
   static Future<void> requestPermissions() async {
-    await _plugin
-        .resolvePlatformSpecificImplementation
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
-    await _plugin
-        .resolvePlatformSpecificImplementation
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestExactAlarmsPermission();
+    final androidImpl = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    await androidImpl?.requestNotificationsPermission();
+    await androidImpl?.requestExactAlarmsPermission();
   }
 
   static Future<void> scheduleTodaysPrayers(DailyPrayerTimes times) async {
@@ -64,11 +56,7 @@ class NotificationService {
     }
   }
 
-  static Future<void> _scheduleOne(
-    int id,
-    String prayerName,
-    DateTime time,
-  ) async {
+  static Future<void> _scheduleOne(int id, String prayerName, DateTime time) async {
     await _plugin.zonedSchedule(
       id: id,
       title: 'Time for $prayerName',
