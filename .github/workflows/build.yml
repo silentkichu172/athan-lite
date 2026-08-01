@@ -20,8 +20,7 @@ jobs:
 
       - name: Add dependencies
         run: |
-          flutter pub add adhan geolocator flutter_compass \
-            flutter_local_notifications timezone hijri intl
+          flutter pub add adhan geolocator flutter_compass flutter_local_notifications timezone hijri intl
 
       - name: Patch AndroidManifest.xml
         run: |
@@ -33,58 +32,4 @@ jobs:
           <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>\
           <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>\
           <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>\
-          <uses-permission android:name="android.permission.WAKE_LOCK"/>' "$MANIFEST"
-          sed -i '/<\/application>/i\
-          <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />\
-          <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">\
-              <intent-filter>\
-                  <action android:name="android.intent.action.BOOT_COMPLETED"/>\
-                  <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>\
-                  <action android:name="android.intent.action.QUICKBOOT_POWERON"/>\
-              </intent-filter>\
-          </receiver>' "$MANIFEST"
-          cat "$MANIFEST"
-
-      - name: Bump minSdk to 23
-        run: |
-          for f in android/app/build.gradle android/app/build.gradle.kts; do
-            if [ -f "$f" ]; then
-              sed -i 's/minSdk = flutter.minSdkVersion/minSdk = 23/' "$f" || true
-              sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 23/' "$f" || true
-            fi
-          done
-
-      - name: Enable core library desugaring
-        run: |
-          KTS=android/app/build.gradle.kts
-          GROOVY=android/app/build.gradle
-          if [ -f "$KTS" ]; then
-            sed -i '/compileOptions {/a\
-        isCoreLibraryDesugaringEnabled = true' "$KTS"
-            if grep -q "^dependencies {" "$KTS"; then
-              sed -i '/^dependencies {/a\
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")' "$KTS"
-            else
-              printf '\ndependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")\n}\n' >> "$KTS"
-            fi
-          fi
-          if [ -f "$GROOVY" ]; then
-            sed -i '/compileOptions {/a\
-        coreLibraryDesugaringEnabled true' "$GROOVY"
-            if grep -q "^dependencies {" "$GROOVY"; then
-              sed -i '/^dependencies {/a\
-    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"' "$GROOVY"
-            fi
-          fi
-          cat "$KTS" 2>/dev/null || cat "$GROOVY"
-
-      - name: Get packages
-        run: flutter pub get
-
-      - name: Build release APK
-        run: flutter build apk --release
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: athan-lite-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          <uses-permission android:name="android.permission.WAKE_LO
