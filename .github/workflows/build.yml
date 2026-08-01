@@ -3,7 +3,7 @@ name: Build APK
 on:
   push:
     branches: [ main ]
-  workflow_dispatch: {}   # lets you trigger a build manually from the Actions tab
+  workflow_dispatch: {}
 
 jobs:
   build:
@@ -15,19 +15,14 @@ jobs:
         with:
           channel: 'stable'
 
-      # Scaffold Android platform files around our existing lib/ + pubspec.yaml
       - name: Create Android platform folder
         run: flutter create --platforms=android --project-name athan_lite --org com.athanlite .
 
-      # Add the packages this app needs (lets Flutter resolve compatible
-      # versions automatically instead of us pinning them by hand)
       - name: Add dependencies
         run: |
           flutter pub add adhan geolocator flutter_compass \
             flutter_local_notifications timezone hijri intl
 
-      # Patch AndroidManifest.xml: permissions + receivers needed for
-      # location and scheduled Azan notifications
       - name: Patch AndroidManifest.xml
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
@@ -50,7 +45,6 @@ jobs:
           </receiver>' "$MANIFEST"
           cat "$MANIFEST"
 
-      # Ensure minSdk is high enough for flutter_local_notifications
       - name: Bump minSdk to 23
         run: |
           for f in android/app/build.gradle android/app/build.gradle.kts; do
@@ -59,6 +53,30 @@ jobs:
               sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 23/' "$f" || true
             fi
           done
+
+      - name: Enable core library desugaring
+        run: |
+          KTS=android/app/build.gradle.kts
+          GROOVY=android/app/build.gradle
+          if [ -f "$KTS" ]; then
+            sed -i '/compileOptions {/a\
+        isCoreLibraryDesugaringEnabled = true' "$KTS"
+            if grep -q "^dependencies {" "$KTS"; then
+              sed -i '/^dependencies {/a\
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")' "$KTS"
+            else
+              printf '\ndependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")\n}\n' >> "$KTS"
+            fi
+          fi
+          if [ -f "$GROOVY" ]; then
+            sed -i '/compileOptions {/a\
+        coreLibraryDesugaringEnabled true' "$GROOVY"
+            if grep -q "^dependencies {" "$GROOVY"; then
+              sed -i '/^dependencies {/a\
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"' "$GROOVY"
+            fi
+          fi
+          cat "$KTS" 2>/dev/null || cat "$GROOVY"
 
       - name: Get packages
         run: flutter pub get
